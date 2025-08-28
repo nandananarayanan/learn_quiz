@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ question.topic.name }} - Question Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'practice_select_topic' %}">Practice</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'practice_questions' question.topic.id %}">{{ question.topic.name }}</a></li>
+            <li class="breadcrumb-item active">Question Details</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Main Question -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-primary text-white">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-question-circle"></i> Question Details
+                        </h5>
+                        <div>
+                            <span class="badge bg-light text-primary">{{ question.topic.name }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Question Meta Info -->
+                    <div class="mb-4">
+                        <div class="d-flex flex-wrap gap-2">
+                            <span class="badge bg-secondary">
+                                {% if question.difficulty == 1 %}
+                                    <i class="fas fa-star"></i> Easy
+                                {% elif question.difficulty == 2 %}
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i> Medium
+                                {% elif question.difficulty == 3 %}
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i> Hard
+                                {% endif %}
+                            </span>
+                            <span class="badge bg-info">{{ question.get_question_type_display }}</span>
+                            <span class="badge bg-success">{{ question.marks }} marks</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Question Text -->
+                    <div class="mb-4">
+                        <h6 class="text-primary">Question:</h6>
+                        <div class="question-text fs-5 p-3 bg-light rounded">
+                            {{ question.text|safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- MCQ Options -->
+                    {% if question.question_type == 'MCQ' %}
+                    <div class="mb-4">
+                        <h6 class="text-primary">Options:</h6>
+                        <div class="row g-3">
+                            {% if question.option_a %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded {% if question.correct_option == 'A' %}border-success bg-success bg-opacity-10{% else %}border-secondary{% endif %}">
+                                    <div class="d-flex align-items-start">
+                                        <span class="badge bg-primary me-2">A</span>
+                                        <div class="flex-grow-1">{{ question.option_a|safe }}</div>
+                                        {% if question.correct_option == 'A' %}
+                                            <i class="fas fa-check-circle text-success fs-5"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if question.option_b %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded {% if question.correct_option == 'B' %}border-success bg-success bg-opacity-10{% else %}border-secondary{% endif %}">
+                                    <div class="d-flex align-items-start">
+                                        <span class="badge bg-primary me-2">B</span>
+                                        <div class="flex-grow-1">{{ question.option_b|safe }}</div>
+                                        {% if question.correct_option == 'B' %}
+                                            <i class="fas fa-check-circle text-success fs-5"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if question.option_c %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded {% if question.correct_option == 'C' %}border-success bg-success bg-opacity-10{% else %}border-secondary{% endif %}">
+                                    <div class="d-flex align-items-start">
+                                        <span class="badge bg-primary me-2">C</span>
+                                        <div class="flex-grow-1">{{ question.option_c|safe }}</div>
+                                        {% if question.correct_option == 'C' %}
+                                            <i class="fas fa-check-circle text-success fs-5"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if question.option_d %}
+                            <div class="col-md-6">
+                                <div class="p-3 border rounded {% if question.correct_option == 'D' %}border-success bg-success bg-opacity-10{% else %}border-secondary{% endif %}">
+                                    <div class="d-flex align-items-start">
+                                        <span class="badge bg-primary me-2">D</span>
+                                        <div class="flex-grow-1">{{ question.option_d|safe }}</div>
+                                        {% if question.correct_option == 'D' %}
+                                            <i class="fas fa-check-circle text-success fs-5"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Correct Answer for Non-MCQ -->
+                    {% if question.question_type != 'MCQ' %}
+                    <div class="mb-4">
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading">
+                                <i class="fas fa-check-circle"></i> Correct Answer:
+                            </h6>
+                            <div class="fs-5 fw-bold">{{ question.correct_option }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Solution -->
+                    {% if question.solution %}
+                    <div class="solution-section">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning bg-opacity-10 border-warning">
+                                <h6 class="mb-0 text-warning">
+                                    <i class="fas fa-lightbulb"></i> Step-by-Step Solution
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="solution-content">
+                                    {{ question.solution|safe }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>No detailed solution available</strong> for this question yet.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="card-footer bg-light">
+                    <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <a href="{% url 'practice_questions' question.topic.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Questions
+                        </a>
+                        <div>
+                            {% if question.created_by %}
+                                <small class="text-muted">
+                                    Created by {{ question.created_by.username }} on {{ question.created_at|date:"M d, Y" }}
+                                </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-bolt"></i> Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'take_quiz' question.topic.id %}" class="btn btn-warning">
+                            <i class="fas fa-clock"></i> Take {{ question.topic.name }} Quiz
+                        </a>
+                        <a href="{% url 'practice_select_topic' %}" class="btn btn-primary">
+                            <i class="fas fa-book-open"></i> Practice Other Topics
+                        </a>
+                        {% if user.is_authenticated and user.is_staff %}
+                        <a href="{% url 'question_edit' question.id %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-edit"></i> Edit Question
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Related Questions -->
+            {% if related_questions %}
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="fas fa-list"></i> More Questions from {{ question.topic.name }}</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for related in related_questions %}
+                        <a href="{% url 'practice_question_detail' related.id %}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">{{ related.text|truncatechars:50 }}</div>
+                                    <small class="text-muted">{{ related.get_question_type_display }}</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="badge bg-{% if related.difficulty == 1 %}success{% elif related.difficulty == 2 %}warning{% else %}danger{% endif %} mb-1">
+                                        {% if related.difficulty == 1 %}Easy{% elif related.difficulty == 2 %}Medium{% else %}Hard{% endif %}
+                                    </span>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="card-footer">
+                    <a href="{% url 'practice_questions' question.topic.id %}" class="btn btn-outline-primary btn-sm w-100">
+                        <i class="fas fa-eye"></i> View All Questions
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.gap-2 {
+    gap: 0.5rem;
+}
+.gap-3 {
+    gap: 1rem;
+}
+.solution-content {
+    line-height: 1.8;
+}
+.question-text {
+    line-height: 1.6;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Re-render MathJax after page load
+    document.addEventListener('DOMContentLoaded', function() {
+        if (typeof MathJax !== 'undefined') {
+            MathJax.typesetPromise();
+        }
+    });
+</script>
+{% endblock %}

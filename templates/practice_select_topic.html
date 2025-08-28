@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Select Topic - Practice{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="text-center mb-5">
+                <h1 class="display-5"><i class="fas fa-book-open text-primary"></i> Practice Questions</h1>
+                <p class="lead">Select a topic to practice with detailed solutions and step-by-step explanations</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        {% if topics %}
+            {% for topic in topics %}
+            <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 shadow-sm border-0 practice-topic-card">
+                    <div class="card-header bg-gradient text-white" style="background: linear-gradient(45deg, #007bff, #6610f2);">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-tag"></i> {{ topic.name }}
+                        </h5>
+                    </div>
+                    <div class="card-body d-flex flex-column">
+                        <div class="mb-3">
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-question-circle"></i> 
+                                {{ topic.question_count }} Question{{ topic.question_count|pluralize }}
+                            </span>
+                        </div>
+                        <p class="card-text text-muted">
+                            Practice questions on {{ topic.name|lower }} with detailed solutions and explanations.
+                        </p>
+                        <div class="mt-auto">
+                            <a href="{% url 'practice_questions' topic.id %}" class="btn btn-primary w-100">
+                                <i class="fas fa-play"></i> Start Practice
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent border-0">
+                        <small class="text-muted">
+                            <i class="fas fa-graduation-cap"></i> Learn with step-by-step solutions
+                        </small>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="col-md-12">
+                <div class="card shadow text-center">
+                    <div class="card-body p-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4>No Topics Available</h4>
+                        <p class="text-muted">No topics with questions are available for practice at the moment.</p>
+                        <div class="mt-4">
+                            <a href="{% url 'topic_create' %}" class="btn btn-primary me-3">
+                                <i class="fas fa-plus"></i> Add Topic
+                            </a>
+                            <a href="{% url 'question_create' %}" class="btn btn-success">
+                                <i class="fas fa-plus"></i> Add Questions
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-info text-white text-center">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb"></i> Practice Mode Features</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3">
+                                <i class="fas fa-clock fa-2x text-primary mb-2"></i>
+                                <h6>No Time Pressure</h6>
+                                <small class="text-muted">Learn at your own pace</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3">
+                                <i class="fas fa-list-ol fa-2x text-success mb-2"></i>
+                                <h6>Step-by-Step Solutions</h6>
+                                <small class="text-muted">Detailed explanations provided</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3">
+                                <i class="fas fa-eye fa-2x text-warning mb-2"></i>
+                                <h6>View Answers</h6>
+                                <small class="text-muted">See correct answers immediately</small>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="p-3">
+                                <i class="fas fa-filter fa-2x text-info mb-2"></i>
+                                <h6>Filter by Difficulty</h6>
+                                <small class="text-muted">Choose your challenge level</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.practice-topic-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+.practice-topic-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+.bg-gradient {
+    background: linear-gradient(45deg, #007bff, #6610f2) !important;
+}
+</style>
+{% endblock %}

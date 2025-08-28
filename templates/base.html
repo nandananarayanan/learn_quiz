@@ -8,6 +8,17 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
     <!-- MathJax for LaTeX rendering -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
     <style>
         .navbar-brand {
             font-weight: bold;
@@ -20,6 +31,25 @@
         }
         footer {
             margin-top: 50px;
+        }
+        .solution-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        .question-box {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .answer-highlight {
+            background-color: #d4edda;
+            padding: 10px;
+            border-radius: 5px;
+            border-left: 4px solid #28a745;
         }
     </style>
 </head>
@@ -36,14 +66,30 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'topic_list' %}">Topics</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Study
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'practice_select_topic' %}">
+                                <i class="fas fa-book-open"></i> Practice Questions
+                            </a></li>
+                            <li><a class="dropdown-item" href="{% url 'select_topic' %}">
+                                <i class="fas fa-clock"></i> Take Quiz
+                            </a></li>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'question_list' %}">Questions</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'select_topic' %}">Take Quiz</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            Manage
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{% url 'topic_list' %}">Topics</a></li>
+                            <li><a class="dropdown-item" href="{% url 'question_list' %}">Questions</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{% url 'topic_create' %}">Add Topic</a></li>
+                            <li><a class="dropdown-item" href="{% url 'question_create' %}">Add Question</a></li>
+                        </ul>
                     </li>
                 </ul>
                 <ul class="navbar-nav">

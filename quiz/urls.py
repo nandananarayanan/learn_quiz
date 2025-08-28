@@ -19,4 +19,7 @@ urlpatterns = [
     path('quiz/<int:topic_id>/', views.take_quiz, name='take_quiz'),
     path('quiz/results/', views.quiz_results, name='quiz_results'),
 
+    path("practice/", views.practice_select_topic, name="practice_select_topic"),
+    path("practice/<int:topic_id>/", views.practice_questions, name="practice_questions"),  
+    path("practice/question/<int:question_id>/", views.practice_question_detail, name="practice_question_detail"),
 ]

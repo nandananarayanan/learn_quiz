@@ -1,6 +1,8 @@
 # quiz/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Count
 # from django.contrib.auth.decorators import login_required  # Commented out temporarily
 from .models import Question, Topic
 from .forms import QuestionForm, TopicForm
@@ -185,3 +187,53 @@ def retake_quiz(request, topic_id):
     if 'quiz_results' in request.session:
         del request.session['quiz_results']
     return redirect('take_quiz', topic_id=topic_id)
+
+# NEW PRACTICE SECTION VIEWS
+# @login_required  # Commented out temporarily
+def practice_select_topic(request):
+    """Select topic for practice session"""
+    topics = Topic.objects.annotate(
+        question_count=Count('questions')
+    ).filter(question_count__gt=0)  # Only show topics with questions
+    return render(request, 'practice_select_topic.html', {'topics': topics})
+
+# @login_required  # Commented out temporarily
+def practice_questions(request, topic_id):
+    """Display practice questions with solutions for a topic"""
+    topic = get_object_or_404(Topic, pk=topic_id)
+    
+    # Get all questions for this topic
+    questions_list = Question.objects.filter(topic=topic).order_by('difficulty', 'created_at')
+    
+    # Add pagination
+    paginator = Paginator(questions_list, 5)  # Show 5 questions per page
+    page_number = request.GET.get('page')
+    questions = paginator.get_page(page_number)
+    
+    # Get difficulty filter if provided
+    difficulty_filter = request.GET.get('difficulty')
+    if difficulty_filter:
+        questions_list = questions_list.filter(difficulty=difficulty_filter)
+        questions = paginator.get_page(page_number)
+    
+    return render(request, 'practice_questions.html', {
+        'topic': topic,
+        'questions': questions,
+        'difficulty_levels': Question.DIFFICULTY_LEVELS,
+        'current_difficulty': difficulty_filter
+    })
+
+# @login_required  # Commented out temporarily  
+def practice_question_detail(request, question_id):
+    """Display a single practice question with detailed solution"""
+    question = get_object_or_404(Question, pk=question_id)
+    
+    # Get related questions from the same topic (for navigation)
+    related_questions = Question.objects.filter(
+        topic=question.topic
+    ).exclude(pk=question.pk)[:5]
+    
+    return render(request, 'practice_question_detail.html', {
+        'question': question,
+        'related_questions': related_questions
+    })

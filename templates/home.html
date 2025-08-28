@@ -13,7 +13,14 @@
                     <p class="lead">Test your knowledge with our interactive quizzes covering various topics in mathematics and more!</p>
                     <hr class="my-4">
                     <p>Choose from multiple choice, true/false, and numeric questions to challenge yourself.</p>
-                    <a class="btn btn-light btn-lg" href="{% url 'select_topic' %}" role="button">Start Quiz</a>
+                    <div class="d-flex justify-content-center gap-3 flex-wrap">
+                        <a class="btn btn-light btn-lg" href="{% url 'select_topic' %}" role="button">
+                            <i class="fas fa-clock"></i> Take Quiz
+                        </a>
+                        <a class="btn btn-outline-light btn-lg" href="{% url 'practice_select_topic' %}" role="button">
+                            <i class="fas fa-book-open"></i> Practice Questions
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -21,7 +28,7 @@
 
     <!-- Features Section -->
     <div class="row">
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card h-100 shadow">
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -34,7 +41,7 @@
             </div>
         </div>
         
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
             <div class="card h-100 shadow">
                 <div class="card-body text-center">
                     <div class="mb-3">
@@ -47,15 +54,77 @@
             </div>
         </div>
         
-        <div class="col-md-4 mb-4">
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-graduation-cap fa-3x text-info"></i>
+                    </div>
+                    <h5 class="card-title">Practice Mode</h5>
+                    <p class="card-text">Learn with detailed solutions and step-by-step explanations for every question.</p>
+                    <a href="{% url 'practice_select_topic' %}" class="btn btn-info">Start Practice</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-3 mb-4">
             <div class="card h-100 shadow">
                 <div class="card-body text-center">
                     <div class="mb-3">
                         <i class="fas fa-chart-line fa-3x text-warning"></i>
                     </div>
                     <h5 class="card-title">Track Progress</h5>
-                    <p class="card-text">Monitor your learning progress and improve your understanding with detailed solutions.</p>
+                    <p class="card-text">Monitor your learning progress and improve your understanding with timed quizzes.</p>
                     <a href="{% url 'select_topic' %}" class="btn btn-warning">Take Quiz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Study Modes -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3 class="text-center mb-4">Choose Your Study Mode</h3>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow border-primary">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0"><i class="fas fa-graduation-cap"></i> Practice Mode</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Perfect for learning and understanding concepts:</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> View questions with detailed solutions</li>
+                        <li><i class="fas fa-check text-success"></i> Step-by-step explanations</li>
+                        <li><i class="fas fa-check text-success"></i> No time pressure</li>
+                        <li><i class="fas fa-check text-success"></i> Learn at your own pace</li>
+                    </ul>
+                    <div class="text-center">
+                        <a href="{% url 'practice_select_topic' %}" class="btn btn-primary btn-lg">
+                            <i class="fas fa-book-open"></i> Start Practice
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 mb-4">
+            <div class="card shadow border-warning">
+                <div class="card-header bg-warning text-dark text-center">
+                    <h5 class="mb-0"><i class="fas fa-clock"></i> Quiz Mode</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Test your knowledge and skills:</p>
+                    <ul class="list-unstyled">
+                        <li><i class="fas fa-check text-success"></i> Timed question sets</li>
+                        <li><i class="fas fa-check text-success"></i> Instant scoring</li>
+                        <li><i class="fas fa-check text-success"></i> Performance tracking</li>
+                        <li><i class="fas fa-check text-success"></i> Challenge yourself</li>
+                    </ul>
+                    <div class="text-center">
+                        <a href="{% url 'select_topic' %}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-play"></i> Take Quiz
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -66,7 +135,7 @@
         <div class="col-md-12">
             <div class="card shadow">
                 <div class="card-header bg-secondary text-white">
-                    <h5 class="mb-0">Quick Actions</h5>
+                    <h5 class="mb-0">Quick Actions (Admin)</h5>
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
@@ -82,12 +151,12 @@
                         </div>
                         <div class="col-md-3 mb-3">
                             <a href="{% url 'question_list' %}" class="btn btn-outline-info w-100">
-                                <i class="fas fa-list"></i> Browse Questions
+                                <i class="fas fa-list"></i> Manage Questions
                             </a>
                         </div>
                         <div class="col-md-3 mb-3">
-                            <a href="{% url 'select_topic' %}" class="btn btn-outline-warning w-100">
-                                <i class="fas fa-play"></i> Start Quiz
+                            <a href="{% url 'topic_list' %}" class="btn btn-outline-secondary w-100">
+                                <i class="fas fa-tags"></i> Manage Topics
                             </a>
                         </div>
                     </div>
@@ -102,4 +171,18 @@
 {% block extra_js %}
 <!-- Font Awesome for icons -->
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<style>
+    .jumbotron {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .card {
+        transition: transform 0.2s;
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .gap-3 {
+        gap: 1rem!important;
+    }
+</style>
 {% endblock %}
