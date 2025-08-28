@@ -11,7 +11,89 @@
         <div class="card-body">
             <form method="post">
                 {% csrf_token %}
-                {{ form.as_p }}
+
+                <!-- Question Type -->
+                <div class="mb-3">
+                    {{ form.question_type.label_tag }}
+                    {{ form.question_type }}
+                    {% if form.question_type.errors %}
+                        <div class="text-danger">{{ form.question_type.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Topic -->
+                <div class="mb-3">
+                    {{ form.topic.label_tag }}
+                    {{ form.topic }}
+                    {% if form.topic.errors %}
+                        <div class="text-danger">{{ form.topic.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Text -->
+                <div class="mb-3">
+                    {{ form.text.label_tag }}
+                    {{ form.text }}
+                    {% if form.text.errors %}
+                        <div class="text-danger">{{ form.text.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- Difficulty -->
+                <div class="mb-3">
+                    {{ form.difficulty.label_tag }}
+                    {{ form.difficulty }}
+                    {% if form.difficulty.errors %}
+                        <div class="text-danger">{{ form.difficulty.errors }}</div>
+                    {% endif %}
+                </div>
+
+                <!-- MCQ Options -->
+                <div id="mcq-options" style="display:none;">
+                    <h6 class="text-secondary">Multiple Choice Options:</h6>
+                    <div class="mb-3">
+                        {{ form.option_a.label_tag }}
+                        {{ form.option_a }}
+                        {% if form.option_a.errors %}
+                            <div class="text-danger">{{ form.option_a.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.option_b.label_tag }}
+                        {{ form.option_b }}
+                        {% if form.option_b.errors %}
+                            <div class="text-danger">{{ form.option_b.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.option_c.label_tag }}
+                        {{ form.option_c }}
+                        {% if form.option_c.errors %}
+                            <div class="text-danger">{{ form.option_c.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        {{ form.option_d.label_tag }}
+                        {{ form.option_d }}
+                        {% if form.option_d.errors %}
+                            <div class="text-danger">{{ form.option_d.errors }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Correct Option/Answer -->
+                <div class="mb-3" id="correct-option-container">
+                    <!-- JavaScript will inject the appropriate input field here -->
+                </div>
+
+                <!-- Solution -->
+                <div class="mb-3">
+                    {{ form.solution.label_tag }}
+                    {{ form.solution }}
+                    {% if form.solution.errors %}
+                        <div class="text-danger">{{ form.solution.errors }}</div>
+                    {% endif %}
+                </div>
 
                 <div class="d-flex justify-content-end mt-3">
                     <button type="submit" class="btn btn-success me-2">
@@ -23,4 +105,96 @@
         </div>
     </div>
 </div>
+
+<script>
+const questionType = document.getElementById('id_question_type');
+const mcqOptions = document.getElementById('mcq-options');
+const correctOptionDiv = document.getElementById('correct-option-container');
+
+function toggleFields() {
+    const type = questionType.value;
+    
+    // Clear any existing error styling
+    correctOptionDiv.innerHTML = '';
+    
+    // Show/hide MCQ options
+    if (type === 'MCQ') {
+        mcqOptions.style.display = 'block';
+        correctOptionDiv.innerHTML = `
+            <label for="id_correct_option" class="form-label">Correct Option:</label>
+            <select name="correct_option" id="id_correct_option" class="form-control" required>
+                <option value="">Select correct option</option>
+                <option value="A">A</option>
+                <option value="B">B</option>
+                <option value="C">C</option>
+                <option value="D">D</option>
+            </select>
+            <small class="form-text text-muted">Select which option (A, B, C, or D) is correct</small>
+        `;
+    } else {
+        mcqOptions.style.display = 'none';
+        
+        if (type === 'TF') {
+            correctOptionDiv.innerHTML = `
+                <label for="id_correct_option" class="form-label">Correct Answer:</label>
+                <select name="correct_option" id="id_correct_option" class="form-control" required>
+                    <option value="">Select correct answer</option>
+                    <option value="True">True</option>
+                    <option value="False">False</option>
+                </select>
+                <small class="form-text text-muted">Select whether the statement is True or False</small>
+            `;
+        } else if (type === 'NUM') {
+            correctOptionDiv.innerHTML = `
+                <label for="id_correct_option" class="form-label">Correct Answer:</label>
+                <input type="text" name="correct_option" id="id_correct_option" class="form-control" 
+                       placeholder="Enter the correct numeric answer" required>
+                <small class="form-text text-muted">Enter the correct numeric answer (e.g., 42, 3.14, -5)</small>
+            `;
+        }
+    }
+    
+    // If editing an existing question, set the current value
+    const currentValue = '{{ form.correct_option.value|default:"" }}';
+    if (currentValue) {
+        const correctOptionField = document.getElementById('id_correct_option');
+        if (correctOptionField) {
+            correctOptionField.value = currentValue;
+        }
+    }
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    toggleFields();
+});
+
+// Update when question type changes
+questionType.addEventListener('change', toggleFields);
+
+// Form validation before submit
+document.querySelector('form').addEventListener('submit', function(e) {
+    const type = questionType.value;
+    const correctOption = document.getElementById('id_correct_option');
+    
+    if (!correctOption || !correctOption.value) {
+        e.preventDefault();
+        alert('Please provide the correct answer.');
+        return false;
+    }
+    
+    if (type === 'MCQ') {
+        const optionA = document.querySelector('[name="option_a"]').value.trim();
+        const optionB = document.querySelector('[name="option_b"]').value.trim();
+        const optionC = document.querySelector('[name="option_c"]').value.trim();
+        const optionD = document.querySelector('[name="option_d"]').value.trim();
+        
+        if (!optionA || !optionB || !optionC || !optionD) {
+            e.preventDefault();
+            alert('Please fill all four options for MCQ questions.');
+            return false;
+        }
+    }
+});
+</script>
 {% endblock %}

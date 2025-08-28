@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="quiz-results">
+    <h2>Quiz Results: {{ results.topic }}</h2>
+    
+    <div class="score-summary" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+        <h3>Your Score: {{ score }}/{{ total }} ({{ percentage }}%)</h3>
+        
+        {% if percentage >= 80 %}
+            <p style="color: #28a745; font-weight: bold;">Excellent! 🎉</p>
+        {% elif percentage >= 60 %}
+            <p style="color: #ffc107; font-weight: bold;">Good Job! 👍</p>
+        {% else %}
+            <p style="color: #dc3545; font-weight: bold;">Keep Practicing! 📚</p>
+        {% endif %}
+    </div>
+
+    <h3>Detailed Results:</h3>
+    {% for result in results %}
+        <div class="question-result" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
+            <p><strong>Q{{ forloop.counter }}. {{ result.question.text }}</strong></p>
+            
+            {% if result.question.question_type == "MCQ" %}
+                <p>Your answer: <span style="color: {% if result.is_correct %}#28a745{% else %}#dc3545{% endif %};">
+                    {{ result.user_answer|default:"No answer" }}
+                </span></p>
+                {% if not result.is_correct %}
+                    <p>Correct answer: <span style="color: #28a745;">{{ result.correct_answer }}</span></p>
+                {% endif %}
+            {% elif result.question.question_type == "TF" %}
+                <p>Your answer: <span style="color: {% if result.is_correct %}#28a745{% else %}#dc3545{% endif %};">
+                    {{ result.user_answer|default:"No answer" }}
+                </span></p>
+                {% if not result.is_correct %}
+                    <p>Correct answer: <span style="color: #28a745;">{{ result.correct_answer }}</span></p>
+                {% endif %}
+            {% else %}
+                <p>Your answer: {{ result.user_answer|default:"No answer" }}</p>
+                <p>Expected answer: {{ result.correct_answer }}</p>
+            {% endif %}
+            
+            {% if result.is_correct %}
+                <span style="color: #28a745;">✓ Correct</span>
+            {% else %}
+                <span style="color: #dc3545;">✗ Incorrect</span>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div style="margin-top: 30px;">
+        <a href="{% url 'select_topic' %}" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">Take Another Quiz</a>
+        <a href="{% url 'take_quiz' topic.id %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">Retake This Quiz</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,9 +1,105 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Home - Quiz Application{% endblock %}
+
 {% block content %}
-<div class="container mt-5 text-center">
-    <h1>Welcome to Quiz App</h1>
-    <p class="lead">Choose an option below:</p>
-    <a href="{% url 'topic_list' %}" class="btn btn-primary m-2">Manage Topics</a>
-    <a href="{% url 'question_list' %}" class="btn btn-success m-2">Manage Questions</a>
+<div class="container mt-5">
+    <!-- Hero Section -->
+    <div class="row">
+        <div class="col-md-12">
+            <div class="jumbotron bg-primary text-white p-5 rounded shadow mb-5">
+                <div class="text-center">
+                    <h1 class="display-4">Welcome to Quiz Application</h1>
+                    <p class="lead">Test your knowledge with our interactive quizzes covering various topics in mathematics and more!</p>
+                    <hr class="my-4">
+                    <p>Choose from multiple choice, true/false, and numeric questions to challenge yourself.</p>
+                    <a class="btn btn-light btn-lg" href="{% url 'select_topic' %}" role="button">Start Quiz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-book-open fa-3x text-primary"></i>
+                    </div>
+                    <h5 class="card-title">Multiple Topics</h5>
+                    <p class="card-text">Practice questions from various mathematical topics including percentages, profit & loss, and more.</p>
+                    <a href="{% url 'topic_list' %}" class="btn btn-primary">View Topics</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-question-circle fa-3x text-success"></i>
+                    </div>
+                    <h5 class="card-title">Question Types</h5>
+                    <p class="card-text">Challenge yourself with multiple choice, true/false, and numeric questions of varying difficulty.</p>
+                    <a href="{% url 'question_list' %}" class="btn btn-success">View Questions</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow">
+                <div class="card-body text-center">
+                    <div class="mb-3">
+                        <i class="fas fa-chart-line fa-3x text-warning"></i>
+                    </div>
+                    <h5 class="card-title">Track Progress</h5>
+                    <p class="card-text">Monitor your learning progress and improve your understanding with detailed solutions.</p>
+                    <a href="{% url 'select_topic' %}" class="btn btn-warning">Take Quiz</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <div class="card shadow">
+                <div class="card-header bg-secondary text-white">
+                    <h5 class="mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'topic_create' %}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-plus"></i> Add Topic
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'question_create' %}" class="btn btn-outline-success w-100">
+                                <i class="fas fa-plus"></i> Add Question
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'question_list' %}" class="btn btn-outline-info w-100">
+                                <i class="fas fa-list"></i> Browse Questions
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'select_topic' %}" class="btn btn-outline-warning w-100">
+                                <i class="fas fa-play"></i> Start Quiz
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Font Awesome for icons -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 {% endblock %}

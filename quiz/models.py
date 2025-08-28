@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.conf import settings
 
 # ---------------------------
 # 1. Custom User Model
@@ -23,7 +24,7 @@ class Topic(models.Model):
 
 
 # ---------------------------
-# 3. Question (MCQ type supported)
+# 3. Question (MCQ, True/False, Numeric types supported)
 # ---------------------------
 class Question(models.Model):
     QUESTION_TYPES = [
@@ -39,36 +40,57 @@ class Question(models.Model):
     ]
 
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="questions")
-    text = models.TextField()   # Question text (can hold LaTeX)
+    text = models.TextField()  # Question text (can hold LaTeX)
     question_type = models.CharField(max_length=5, choices=QUESTION_TYPES, default="MCQ")
     difficulty = models.IntegerField(choices=DIFFICULTY_LEVELS, default=1)
-    marks = models.FloatField(default=1.0)
-    negative_marks = models.FloatField(default=0.0)
+    marks = models.FloatField(default=1.0, editable=False)
 
-    # ✅ For MCQ support
+    # MCQ options (only used when question_type is MCQ)
     option_a = models.TextField(blank=True, null=True)
     option_b = models.TextField(blank=True, null=True)
     option_c = models.TextField(blank=True, null=True)
     option_d = models.TextField(blank=True, null=True)
+
+    # Correct answer for all question types
     correct_option = models.CharField(
-        max_length=1,
-        choices=[("A", "Option A"), ("B", "Option B"), ("C", "Option C"), ("D", "Option D")],
+        max_length=50,
         blank=True,
-        null=True
+        null=True,
+        help_text=(
+            "For MCQ: enter A, B, C, or D; "
+            "For True/False: enter True or False; "
+            "For Numeric: enter the number as text."
+        )
     )
 
-    # ✅ LaTeX explanation
+    # LaTeX solution / step-by-step explanation
     solution = models.TextField(blank=True, null=True)
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text[:50]
 
+    def get_correct_answer_display(self):
+        """Return a human-readable format of the correct answer"""
+        if self.question_type == 'MCQ':
+            options_map = {
+                'A': self.option_a,
+                'B': self.option_b,
+                'C': self.option_c,
+                'D': self.option_d
+            }
+            return f"{self.correct_option}: {options_map.get(self.correct_option, 'Unknown')}"
+        elif self.question_type == 'TF':
+            return self.correct_option
+        elif self.question_type == 'NUM':
+            return self.correct_option
+        return self.correct_option
+
 
 # ---------------------------
-# 4. Choice (for MCQs)
+# 4. Choice (for MCQs) - This can be kept for backward compatibility
 # ---------------------------
 class Choice(models.Model):
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="choices")
@@ -98,7 +120,7 @@ class Test(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
 
-    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
         return f"{self.name} ({self.test_type})"
@@ -108,7 +130,7 @@ class Test(models.Model):
 # 6. Attempt (Student taking a test or practice session)
 # ---------------------------
 class Attempt(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE, null=True, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
@@ -119,7 +141,7 @@ class Attempt(models.Model):
 
 
 # ---------------------------
-# 7. Answer (Student’s response)
+# 7. Answer (Student's response)
 # ---------------------------
 class Answer(models.Model):
     attempt = models.ForeignKey(Attempt, on_delete=models.CASCADE, related_name="answers")
@@ -137,7 +159,7 @@ class Answer(models.Model):
 # 8. Bookmark (Students can save questions for later review)
 # ---------------------------
 class Bookmark(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     question = models.ForeignKey(Question, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 

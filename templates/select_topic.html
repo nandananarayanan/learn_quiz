@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-5 text-center">
+    <h2>Select a Topic to Start Quiz</h2>
+    <ul class="list-group mt-3">
+        {% for topic in topics %}
+            <li class="list-group-item">
+                {{ topic.name }}
+                <a href="{% url 'take_quiz' topic.id %}" class="btn btn-primary btn-sm float-end">Start Quiz</a>
+            </li>
+        {% empty %}
+            <li class="list-group-item">No topics available.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
