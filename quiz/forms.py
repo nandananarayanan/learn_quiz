@@ -12,7 +12,7 @@ class QuestionForm(forms.ModelForm):
         model = Question
         fields = [
             'topic', 'text', 'question_type', 'difficulty',
-            'marks', 'negative_marks'
+            'marks', 'negative_marks', 'solution'
         ]
         widgets = {
             'text': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
@@ -21,4 +21,9 @@ class QuestionForm(forms.ModelForm):
             'difficulty': forms.Select(attrs={'class': 'form-control'}),
             'marks': forms.NumberInput(attrs={'class': 'form-control'}),
             'negative_marks': forms.NumberInput(attrs={'class': 'form-control'}),
+            'solution': forms.Textarea(attrs={
+                'rows': 3,
+                'class': 'form-control',
+                'placeholder': 'Enter answer in LaTeX code'
+            }),
         }

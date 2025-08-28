@@ -39,17 +39,33 @@ class Question(models.Model):
     ]
 
     topic = models.ForeignKey(Topic, on_delete=models.CASCADE, related_name="questions")
-    text = models.TextField()
+    text = models.TextField()   # Question text (can hold LaTeX)
     question_type = models.CharField(max_length=5, choices=QUESTION_TYPES, default="MCQ")
-    difficulty = models.IntegerField(choices=DIFFICULTY_LEVELS, default=1)   # ✅ Dropdown now
+    difficulty = models.IntegerField(choices=DIFFICULTY_LEVELS, default=1)
     marks = models.FloatField(default=1.0)
     negative_marks = models.FloatField(default=0.0)
+
+    # ✅ For MCQ support
+    option_a = models.TextField(blank=True, null=True)
+    option_b = models.TextField(blank=True, null=True)
+    option_c = models.TextField(blank=True, null=True)
+    option_d = models.TextField(blank=True, null=True)
+    correct_option = models.CharField(
+        max_length=1,
+        choices=[("A", "Option A"), ("B", "Option B"), ("C", "Option C"), ("D", "Option D")],
+        blank=True,
+        null=True
+    )
+
+    # ✅ LaTeX explanation
+    solution = models.TextField(blank=True, null=True)
 
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.text[:50]
+
 
 # ---------------------------
 # 4. Choice (for MCQs)

@@ -44,6 +44,18 @@
         vertical-align: middle;
         text-align: center;
     }
+
+    /* Answer row style */
+    .answer-row {
+        display: none;
+        background-color: #f9f9f9;
+    }
+    .answer-cell {
+        text-align: left;
+        padding: 15px;
+        font-style: italic;
+        color: #444;
+    }
 </style>
 
 <div class="mb-3">
@@ -62,7 +74,7 @@
     </thead>
     <tbody>
         {% for q in questions %}
-        <tr>
+        <tr onclick="toggleAnswer('{{ q.pk }}')" style="cursor:pointer;">
             <td>{{ forloop.counter }}</td>
             <td>{{ q.text }}</td>
             <td>{{ q.topic.name }}</td>
@@ -78,9 +90,22 @@
                 </form>
             </td>
         </tr>
+        <!-- Hidden answer row -->
+        <tr id="answer-{{ q.pk }}" class="answer-row">
+            <td colspan="4" class="answer-cell">
+                <b>Answer:</b> {{ q.solution|safe }}
+            </td>
+        </tr>
         {% empty %}
         <tr><td colspan="4" class="text-center">No questions found.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+
+<script>
+    function toggleAnswer(id) {
+        let row = document.getElementById("answer-" + id);
+        row.style.display = (row.style.display === "table-row") ? "none" : "table-row";
+    }
+</script>
 {% endblock %}
