@@ -4,11 +4,31 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count
 # from django.contrib.auth.decorators import login_required  # Commented out temporarily
-from .models import Question, Topic
+from .models import Question, Topic,TopicNote
 from .forms import QuestionForm, TopicForm
 
 def home(request):
-    return render(request, 'home.html')
+    # Get all topics with their notes and question counts
+    topics_with_notes = []
+    topics = Topic.objects.all()
+    
+    for topic in topics:
+        try:
+            note = topic.note  # Related name from OneToOneField
+        except TopicNote.DoesNotExist:
+            note = None
+            
+        topic_data = {
+            'topic': topic,
+            'note': note,
+            'question_count': topic.questions.count()
+        }
+        topics_with_notes.append(topic_data)
+    
+    context = {
+        'topics_with_notes': topics_with_notes,
+    }
+    return render(request, 'home.html', context)
 
 # Topic Views
 # @login_required  # Commented out temporarily
@@ -127,59 +147,117 @@ def select_topic(request):
 
 # Replace your existing take_quiz function with this updated version:
 
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from .models import Topic, Question
+from django.contrib import messages
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.urls import reverse
+from django.contrib import messages
+from .models import Topic, Question
+
 def take_quiz(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
-    questions = Question.objects.filter(topic=topic)[:10]  # Limit to 10 questions
-    
-    if request.method == 'POST':
-        # Handle quiz submission
-        score = 0
-        total_questions = len(questions)
-        results = []
-        
-        for question in questions:
-            user_answer = request.POST.get(str(question.id))
-            correct_answer = question.correct_option
-            is_correct = False
-            
-            if user_answer and correct_answer:
-                if user_answer.upper() == correct_answer.upper():
+    questions = list(Question.objects.filter(topic=topic)[:10])
+    total_questions = len(questions)
+
+    # Current question index from query params
+    current_index = int(request.GET.get("q", 0))
+    current_index = max(0, min(current_index, total_questions - 1))
+
+    # Initialize session answers
+    if "quiz_answers" not in request.session:
+        request.session["quiz_answers"] = {}
+    answers = request.session["quiz_answers"]
+
+    if request.method == "POST":
+        action = request.POST.get("action")
+        current_question = questions[current_index]
+        question_id = str(current_question.id)
+        user_answer = request.POST.get("answer", "").strip()
+
+        # Save the answer even if numeric "0"
+        answers[question_id] = user_answer
+        request.session["quiz_answers"] = answers
+
+        # Navigation
+        if action == "next" and current_index < total_questions - 1:
+            return redirect(f"{reverse('take_quiz', args=[topic.id])}?q={current_index + 1}")
+        elif action == "prev" and current_index > 0:
+            return redirect(f"{reverse('take_quiz', args=[topic.id])}?q={current_index - 1}")
+        elif action == "submit":
+            # Prepare results
+            score = 0
+            results = []
+            for q in questions:
+                q_id = str(q.id)
+                user_ans = answers.get(q_id, "").strip()
+                correct = (q.correct_option or "").strip()
+
+                if q.question_type in ["MCQ", "TF"]:
+                    is_correct = user_ans.upper() == correct.upper() if user_ans else False
+                else:  # Numeric
+                    is_correct = user_ans == correct
+
+                if is_correct:
                     score += 1
-                    is_correct = True
-            
-            results.append({
-                'question': question,  # This is fine for direct template rendering
-                'user_answer': user_answer,
-                'correct_answer': correct_answer,
-                'is_correct': is_correct
-            })
-        
-        # Calculate percentage
-        percentage = (score / total_questions * 100) if total_questions > 0 else 0
-        
-        # Render results directly instead of redirecting
-        return render(request, 'quiz_results.html', {
-            'topic': topic,
-            'score': score,
-            'total': total_questions,
-            'percentage': round(percentage, 1),
-            'results': results
-        })
-    
-    # Handle GET request (display quiz)
-    return render(request, 'take_quiz.html', {
-        'topic': topic, 
-        'questions': questions
+
+                results.append({
+                    "question_text": q.text,
+                    "user_answer": user_ans if user_ans else "No answer",
+                    "correct_answer": correct,
+                    "is_correct": is_correct,
+                    "question_type": q.question_type,
+                    "options": {
+                        "A": q.option_a,
+                        "B": q.option_b,
+                        "C": q.option_c,
+                        "D": q.option_d
+                    } if q.question_type == "MCQ" else None
+                })
+
+            percentage = (score / total_questions * 100) if total_questions else 0
+
+            # Store only JSON-serializable data in session
+            request.session["quiz_results"] = {
+                "topic_id": topic.id,
+                "topic_name": topic.name,
+                "score": score,
+                "total": total_questions,
+                "percentage": round(percentage, 1),
+                "results": results
+            }
+
+            # Clear quiz answers
+            del request.session["quiz_answers"]
+
+            return redirect('quiz_results')
+
+    current_question = questions[current_index]
+    question_id = str(current_question.id)
+    saved_answer = answers.get(question_id, "")
+
+    return render(request, "take_quiz.html", {
+        "topic": topic,
+        "question": current_question,
+        "current_index": current_index,
+        "total_questions": total_questions,
+        "saved_answer": saved_answer,
+        "answered_count": len(answers),
+        "unanswered_count": total_questions - len(answers)
     })
 
-# Add this new view for displaying results
+
 def quiz_results(request):
-    results_data = request.session.get('quiz_results')
+    results_data = request.session.get("quiz_results")
     if not results_data:
-        messages.error(request, 'No quiz results found.')
+        messages.error(request, "No quiz results found.")
         return redirect('select_topic')
-    
-    return render(request, 'quiz_results.html', {'results': results_data})
+
+    # Do NOT delete session yet if template needs topic_id
+    return render(request, "quiz_results.html", {"results": results_data})
+
 
 # Optional: Add this view to retake quiz
 def retake_quiz(request, topic_id):
@@ -237,3 +315,76 @@ def practice_question_detail(request, question_id):
         'question': question,
         'related_questions': related_questions
     })
+
+def topic_note_create(request, topic_id):
+    topic = get_object_or_404(Topic, pk=topic_id)
+    
+    if request.method == 'POST':
+        content = request.POST.get('content')
+        if content:
+            # Update or create note
+            note, created = TopicNote.objects.update_or_create(
+                topic=topic,
+                defaults={'content': content}
+            )
+            action = "created" if created else "updated"
+            messages.success(request, f'Note {action} successfully for {topic.name}!')
+        else:
+            messages.error(request, 'Please enter note content.')
+    
+    return redirect('topic_list')
+
+def topic_note_delete(request, topic_id):
+    topic = get_object_or_404(Topic, pk=topic_id)
+    
+    if request.method == 'POST':
+        try:
+            note = topic.note
+            note.delete()
+            messages.success(request, f'Note deleted for {topic.name}!')
+        except TopicNote.DoesNotExist:
+            messages.error(request, 'Note not found!')
+    
+    return redirect('topic_list')
+
+# Update your topic_list view to include notes
+def topic_list(request):
+    topics = Topic.objects.all()
+    # Get all existing notes
+    notes = {note.topic_id: note for note in TopicNote.objects.all()}
+    
+    topics_data = []
+    for topic in topics:
+        topics_data.append({
+            'topic': topic,
+            'note': notes.get(topic.id),
+            'question_count': topic.questions.count()
+        })
+    
+    return render(request, 'topic_list.html', {
+        'topics_data': topics_data,
+        'topics': topics  # Keep for compatibility
+    })
+
+def topic_note_view(request, topic_id):
+    """Display detailed view of a topic with its notes"""
+    topic = get_object_or_404(Topic, pk=topic_id)
+    
+    # Get the note if it exists
+    try:
+        note = topic.note
+    except TopicNote.DoesNotExist:
+        note = None
+    
+    # Get question count and sample questions
+    questions = Question.objects.filter(topic=topic)
+    question_count = questions.count()
+    
+    context = {
+        'topic': topic,
+        'note': note,
+        'questions': questions,
+        'question_count': question_count,
+    }
+    
+    return render(request, 'topic_note_view.html', context)

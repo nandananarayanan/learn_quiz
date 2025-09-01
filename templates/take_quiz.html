@@ -1,26 +1,55 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Quiz on {{ topic.name }}</h2>
-<form method="post">
-  {% csrf_token %}
-  {% for q in questions %}
-    <div style="margin-bottom:20px;">
-      <p><strong>Q{{ forloop.counter }}. {{ q.text }}</strong></p>
+<div style="display:flex; justify-content:space-between; align-items:center;">
+  <h2>Quiz on {{ topic.name }}</h2>
+</div>
 
-      {% if q.question_type == "MCQ" %}
-        <label><input type="radio" name="{{ q.id }}" value="A"> {{ q.option_a }}</label><br>
-        <label><input type="radio" name="{{ q.id }}" value="B"> {{ q.option_b }}</label><br>
-        <label><input type="radio" name="{{ q.id }}" value="C"> {{ q.option_c }}</label><br>
-        <label><input type="radio" name="{{ q.id }}" value="D"> {{ q.option_d }}</label><br>
-      {% elif q.question_type == "TF" %}
-        <label><input type="radio" name="{{ q.id }}" value="True"> True</label><br>
-        <label><input type="radio" name="{{ q.id }}" value="False"> False</label><br>
-      {% else %}
-        <input type="text" name="{{ q.id }}" placeholder="Type your answer">
+<!-- Progress -->
+<p>Answered: {{ answered_count }} | Unanswered: {{ unanswered_count }} | Total: {{ total_questions }}</p>
+
+<form method="post" onsubmit="return confirmSubmit();">
+  {% csrf_token %}
+
+  <!-- Question -->
+  <div style="margin:20px 0;">
+    <p><strong>Q{{ current_index|add:"1" }}. {{ question.text }}</strong></p>
+
+    {% if question.question_type == "MCQ" %}
+      <label><input type="radio" name="answer" value="A" {% if saved_answer == "A" %}checked{% endif %}> {{ question.option_a }}</label><br>
+      <label><input type="radio" name="answer" value="B" {% if saved_answer == "B" %}checked{% endif %}> {{ question.option_b }}</label><br>
+      <label><input type="radio" name="answer" value="C" {% if saved_answer == "C" %}checked{% endif %}> {{ question.option_c }}</label><br>
+      <label><input type="radio" name="answer" value="D" {% if saved_answer == "D" %}checked{% endif %}> {{ question.option_d }}</label><br>
+    {% elif question.question_type == "TF" %}
+      <label><input type="radio" name="answer" value="True" {% if saved_answer == "True" %}checked{% endif %}> True</label><br>
+      <label><input type="radio" name="answer" value="False" {% if saved_answer == "False" %}checked{% endif %}> False</label><br>
+    {% else %}
+      <input type="text" name="answer" value="{{ saved_answer }}">
+    {% endif %}
+  </div>
+
+  <!-- Navigation & Submit Buttons -->
+  <div style="display:flex; justify-content:space-between; margin-top:20px;">
+    <div>
+      {% if current_index > 0 %}
+        <button type="submit" name="action" value="prev">Previous</button>
+      {% endif %}
+      {% if current_index < total_questions|add:"-1" %}
+        <button type="submit" name="action" value="next">Next</button>
       {% endif %}
     </div>
-  {% endfor %}
-  <button type="submit">Submit Quiz</button>
-</form>
+
+    <!-- Add an ID to the submit button -->
+<button type="submit" id="submitBtn" name="action" value="submit"
+        style="background:red; color:white; padding:5px 10px; border:none; cursor:pointer;">
+  Submit Quiz
+</button>
+
+<script>
+document.getElementById("submitBtn").addEventListener("click", function(event) {
+  if (!confirm("Are you sure you want to submit the quiz?")) {
+    event.preventDefault(); // prevent form submission if user cancels
+  }
+});
+</script>
 {% endblock %}

@@ -9,6 +9,10 @@ urlpatterns = [
     path("topics/<int:pk>/edit/", views.topic_edit, name="topic_edit"),
     path("topics/<int:pk>/delete/", views.topic_delete, name="topic_delete"),
 
+    path("topics/<int:topic_id>/note/add/", views.topic_note_create, name="topic_note_create"),
+    path("topics/<int:topic_id>/note/delete/", views.topic_note_delete, name="topic_note_delete"),
+    path('topic/<int:topic_id>/notes/', views.topic_note_view, name='topic_note_view'),
+
     # Question URLs
     path("questions/", views.question_list, name="question_list"),
     path("questions/add/", views.question_create, name="question_create"),

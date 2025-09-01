@@ -168,3 +168,12 @@ class Bookmark(models.Model):
 
     def __str__(self):
         return f"{self.user} bookmarked {self.question.id}"
+    
+class TopicNote(models.Model):
+    topic = models.OneToOneField(Topic, on_delete=models.CASCADE, related_name='note')
+    content = models.TextField(max_length=500, help_text="Short note about this topic")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Note for {self.topic.name}"

@@ -1,4 +1,3 @@
-<!-- topic_list.html - Save this to quiz/templates/topic_list.html -->
 {% extends 'base.html' %}
 
 {% block title %}Topics - Quiz Application{% endblock %}
@@ -11,15 +10,46 @@
     </div>
 
     <div class="row">
-        {% for topic in topics %}
+        {% for data in topics_data %}
         <div class="col-md-4 mb-3">
             <div class="card shadow">
                 <div class="card-body">
-                    <h5 class="card-title">{{ topic.name }}</h5>
-                    <p class="text-muted">{{ topic.questions.count }} questions</p>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="card-title">{{ data.topic.name }}</h5>
+                        <span class="badge bg-primary">{{ data.question_count }} questions</span>
+                    </div>
+                    
+                    <!-- Display existing note -->
+                    {% if data.note %}
+                        <div class="alert alert-success alert-sm mb-2">
+                            <strong><i class="fas fa-sticky-note"></i> Note:</strong> {{ data.note.content }}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Note management form -->
+                    <form method="post" action="{% url 'topic_note_create' data.topic.id %}" class="mb-3">
+                        {% csrf_token %}
+                        <div class="mb-2">
+                            <textarea name="content" class="form-control form-control-sm" rows="2" 
+                                     placeholder="Add a short note for this topic..."
+                                     maxlength="500">{% if data.note %}{{ data.note.content }}{% endif %}</textarea>
+                        </div>
+                        <div class="d-flex gap-1 mb-2">
+                            <button class="btn btn-sm btn-success flex-fill" type="submit">
+                                {% if data.note %}<i class="fas fa-edit"></i> Update{% else %}<i class="fas fa-plus"></i> Add{% endif %} Note
+                            </button>
+                            {% if data.note %}
+                                <button type="button" class="btn btn-sm btn-outline-warning" 
+                                        onclick="deleteNote({{ data.topic.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </form>
+                    
                     <div class="btn-group" role="group">
-                        <a href="{% url 'topic_edit' topic.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
-                        <a href="{% url 'topic_delete' topic.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+                        <a href="{% url 'topic_edit' data.topic.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+                        <a href="{% url 'topic_delete' data.topic.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
                     </div>
                 </div>
             </div>
@@ -33,4 +63,21 @@
         {% endfor %}
     </div>
 </div>
+
+<!-- Hidden forms for note deletion -->
+{% for data in topics_data %}
+    {% if data.note %}
+    <form id="deleteNoteForm{{ data.topic.id }}" method="post" action="{% url 'topic_note_delete' data.topic.id %}" style="display: none;">
+        {% csrf_token %}
+    </form>
+    {% endif %}
+{% endfor %}
+
+<script>
+function deleteNote(topicId) {
+    if (confirm('Are you sure you want to delete this note?')) {
+        document.getElementById('deleteNoteForm' + topicId).submit();
+    }
+}
+</script>
 {% endblock %}

@@ -130,6 +130,98 @@
         </div>
     </div>
 
+    <!-- Topic Notes Cards Section -->
+    {% if topics_with_notes %}
+    <div class="row mt-5">
+        <div class="col-md-12">
+            <h3 class="text-center mb-2">
+                <i class="fas fa-sticky-note text-info"></i> Topic Notes
+            </h3>
+            <p class="text-center text-muted mb-5">Choose a topic to view its notes</p>
+        </div>
+
+        <!-- Topic Cards Grid -->
+        <div class="col-12">
+            <div class="row g-4">
+                {% for topic_data in topics_with_notes %}
+                <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6">
+                    <div class="topic-card h-100 shadow-sm">
+                        <div class="topic-card-body">
+                            <!-- Dynamic Icon Section -->
+                            <div class="topic-icon mb-3">
+                                <div class="icon-wrapper 
+                                    {% if 'age' in topic_data.topic.name|lower %}bg-blue
+                                    {% elif 'percentage' in topic_data.topic.name|lower or 'percent' in topic_data.topic.name|lower %}bg-green
+                                    {% elif 'profit' in topic_data.topic.name|lower or 'loss' in topic_data.topic.name|lower %}bg-orange
+                                    {% elif 'interest' in topic_data.topic.name|lower %}bg-purple
+                                    {% elif 'time' in topic_data.topic.name|lower or 'work' in topic_data.topic.name|lower %}bg-red
+                                    {% elif 'speed' in topic_data.topic.name|lower or 'distance' in topic_data.topic.name|lower %}bg-indigo
+                                    {% elif 'ratio' in topic_data.topic.name|lower or 'proportion' in topic_data.topic.name|lower %}bg-pink
+                                    {% elif 'average' in topic_data.topic.name|lower or 'mean' in topic_data.topic.name|lower %}bg-teal
+                                    {% elif 'compound' in topic_data.topic.name|lower %}bg-green
+                                    {% elif 'permutation' in topic_data.topic.name|lower or 'combination' in topic_data.topic.name|lower %}bg-yellow
+                                    {% elif 'probability' in topic_data.topic.name|lower %}bg-purple
+                                    {% elif 'alligation' in topic_data.topic.name|lower or 'mixture' in topic_data.topic.name|lower %}bg-red
+                                    {% elif 'algebra' in topic_data.topic.name|lower or 'equation' in topic_data.topic.name|lower %}bg-indigo
+                                    {% elif 'geometry' in topic_data.topic.name|lower or 'area' in topic_data.topic.name|lower or 'volume' in topic_data.topic.name|lower %}bg-teal
+                                    {% elif 'number' in topic_data.topic.name|lower or 'digit' in topic_data.topic.name|lower %}bg-blue
+                                    {% elif 'data' in topic_data.topic.name|lower or 'statistics' in topic_data.topic.name|lower %}bg-pink
+                                    {% else %}{% cycle 'bg-blue' 'bg-green' 'bg-orange' 'bg-purple' 'bg-red' 'bg-indigo' 'bg-pink' 'bg-teal' %}{% endif %}">
+                                    
+                                    <!-- Dynamic icon based on topic name -->
+                                    <i class="fas 
+                                        {% if 'age' in topic_data.topic.name|lower %}fa-birthday-cake
+                                        {% elif 'percentage' in topic_data.topic.name|lower or 'percent' in topic_data.topic.name|lower %}fa-percentage
+                                        {% elif 'profit' in topic_data.topic.name|lower or 'loss' in topic_data.topic.name|lower %}fa-chart-line
+                                        {% elif 'interest' in topic_data.topic.name|lower %}fa-calculator
+                                        {% elif 'time' in topic_data.topic.name|lower or 'work' in topic_data.topic.name|lower %}fa-clock
+                                        {% elif 'speed' in topic_data.topic.name|lower or 'distance' in topic_data.topic.name|lower %}fa-route
+                                        {% elif 'ratio' in topic_data.topic.name|lower or 'proportion' in topic_data.topic.name|lower %}fa-balance-scale
+                                        {% elif 'average' in topic_data.topic.name|lower or 'mean' in topic_data.topic.name|lower %}fa-chart-bar
+                                        {% elif 'compound' in topic_data.topic.name|lower %}fa-seedling
+                                        {% elif 'permutation' in topic_data.topic.name|lower or 'combination' in topic_data.topic.name|lower %}fa-shuffle
+                                        {% elif 'probability' in topic_data.topic.name|lower %}fa-dice
+                                        {% elif 'alligation' in topic_data.topic.name|lower or 'mixture' in topic_data.topic.name|lower %}fa-flask
+                                        {% elif 'algebra' in topic_data.topic.name|lower or 'equation' in topic_data.topic.name|lower %}fa-square-root-alt
+                                        {% elif 'geometry' in topic_data.topic.name|lower or 'area' in topic_data.topic.name|lower or 'volume' in topic_data.topic.name|lower %}fa-shapes
+                                        {% elif 'number' in topic_data.topic.name|lower or 'digit' in topic_data.topic.name|lower %}fa-hashtag
+                                        {% elif 'data' in topic_data.topic.name|lower or 'statistics' in topic_data.topic.name|lower %}fa-chart-pie
+                                        {% else %}fa-book{% endif %}"></i>
+                                </div>
+                            </div>
+
+                            <!-- Topic Title -->
+                            <h5 class="topic-title">{{ topic_data.topic.name }}</h5>
+
+                            <!-- Question Count -->
+                            <p class="topic-questions">{{ topic_data.question_count }} Question{{ topic_data.question_count|pluralize }}</p>
+
+                            <!-- Note Status Indicator -->
+                            {% if topic_data.note %}
+                                <div class="note-indicator">
+                                    <i class="fas fa-sticky-note text-success"></i>
+                                    <span class="text-success">Has Notes</span>
+                                </div>
+                            {% else %}
+                                <div class="note-indicator">
+                                    <i class="fas fa-sticky-note text-muted"></i>
+                                    <span class="text-muted">No Notes</span>
+                                </div>
+                            {% endif %}
+
+                            <!-- Click to View -->
+                            <a href="{% url 'topic_note_view' topic_data.topic.id %}" class="topic-link">
+                                <span class="sr-only">View {{ topic_data.topic.name }} notes</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Quick Stats -->
     <div class="row mt-5">
         <div class="col-md-12">
@@ -139,16 +231,6 @@
                 </div>
                 <div class="card-body">
                     <div class="row text-center">
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'topic_create' %}" class="btn btn-outline-primary w-100">
-                                <i class="fas fa-plus"></i> Add Topic
-                            </a>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <a href="{% url 'question_create' %}" class="btn btn-outline-success w-100">
-                                <i class="fas fa-plus"></i> Add Question
-                            </a>
-                        </div>
                         <div class="col-md-3 mb-3">
                             <a href="{% url 'question_list' %}" class="btn btn-outline-info w-100">
                                 <i class="fas fa-list"></i> Manage Questions
@@ -184,5 +266,148 @@
     .gap-3 {
         gap: 1rem!important;
     }
+    
+    /* Topic Cards Styling */
+    .topic-card {
+        background: white;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .topic-card:hover {
+        transform: translateY(-8px);
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important;
+        border-color: #cbd5e0;
+    }
+
+    .topic-card-body {
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .topic-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .icon-wrapper {
+        width: 64px;
+        height: 64px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto;
+    }
+
+    .icon-wrapper i {
+        font-size: 24px;
+        color: white;
+    }
+
+    /* Color Schemes */
+    .bg-blue { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-green { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); }
+    .bg-orange { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); }
+    .bg-purple { background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); }
+    .bg-red { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); }
+    .bg-indigo { background: linear-gradient(135deg, #6c5ce7 0%, #5a4fcf 100%); }
+    .bg-pink { background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%); }
+    .bg-teal { background: linear-gradient(135deg, #1abc9c 0%, #16a085 100%); }
+    .bg-yellow { background: linear-gradient(135deg, #f1c40f 0%, #e67e22 100%); }
+
+    .topic-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 0.5rem;
+        line-height: 1.3;
+    }
+
+    .topic-questions {
+        color: #718096;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .note-indicator {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        font-size: 0.85rem;
+    }
+
+    .topic-link {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1;
+    }
+
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0,0,0,0);
+        border: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 576px) {
+        .topic-card-body {
+            padding: 1.5rem;
+        }
+        
+        .icon-wrapper {
+            width: 56px;
+            height: 56px;
+        }
+        
+        .icon-wrapper i {
+            font-size: 20px;
+        }
+        
+        .topic-title {
+            font-size: 1rem;
+        }
+    }
+
+    /* Loading Animation */
+    .topic-card {
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Stagger Animation for Cards */
+    .topic-card:nth-child(1) { animation-delay: 0.1s; }
+    .topic-card:nth-child(2) { animation-delay: 0.2s; }
+    .topic-card:nth-child(3) { animation-delay: 0.3s; }
+    .topic-card:nth-child(4) { animation-delay: 0.4s; }
+    .topic-card:nth-child(5) { animation-delay: 0.5s; }
+    .topic-card:nth-child(6) { animation-delay: 0.6s; }
+    .topic-card:nth-child(7) { animation-delay: 0.7s; }
+    .topic-card:nth-child(8) { animation-delay: 0.8s; }
 </style>
 {% endblock %}
