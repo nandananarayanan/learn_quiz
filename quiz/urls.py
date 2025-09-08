@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.contrib.auth import views as auth_views
+from .views import signup_view
 
 urlpatterns = [
     path("", views.home, name="home"),
@@ -26,4 +28,9 @@ urlpatterns = [
     path("practice/", views.practice_select_topic, name="practice_select_topic"),
     path("practice/<int:topic_id>/", views.practice_questions, name="practice_questions"),  
     path("practice/question/<int:question_id>/", views.practice_question_detail, name="practice_question_detail"),
+
+    path("signup/", signup_view, name="signup"),
+    path("login/", auth_views.LoginView.as_view(template_name="login.html"), name="login"),
+    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path("profile/", views.profile_view, name="profile"), 
 ]

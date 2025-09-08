@@ -66,3 +66,24 @@ class QuestionForm(forms.ModelForm):
                 self.add_error('correct_option', 'Please provide the correct numeric answer.')
         
         return cleaned_data
+
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import get_user_model
+from django import forms
+
+User = get_user_model()  # THIS will point to quiz.User
+
+
+class SignUpForm(UserCreationForm):
+    email = forms.EmailField(required=True, help_text="Required. Enter a valid email address.")
+
+    class Meta:
+        model = User  # Now this is your quiz.User
+        fields = ("username", "email", "password1", "password2")
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.email = self.cleaned_data["email"]
+        if commit:
+            user.save()
+        return user
