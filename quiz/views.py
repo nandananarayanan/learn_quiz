@@ -410,3 +410,13 @@ def signup_view(request):
 @login_required
 def profile_view(request):
     return render(request, 'profile.html')
+
+from django.shortcuts import redirect
+from django.contrib.auth.decorators import login_required
+
+@login_required
+def redirect_after_login(request):
+    if request.user.is_superuser or request.user.is_staff:
+        return redirect("home")  # Django’s default admin dashboard
+    else:
+        return redirect("home")     # your quiz home page

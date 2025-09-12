@@ -66,32 +66,41 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Study
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'practice_select_topic' %}">
-                                <i class="fas fa-book-open"></i> Practice Questions
-                            </a></li>
-                            <li><a class="dropdown-item" href="{% url 'select_topic' %}">
-                                <i class="fas fa-clock"></i> Take Quiz
-                            </a></li>
-                        </ul>
-                    </li>
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                            Manage
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{% url 'topic_list' %}">Topics</a></li>
-                            <li><a class="dropdown-item" href="{% url 'question_list' %}">Questions</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{% url 'topic_create' %}">Add Topic</a></li>
-                            <li><a class="dropdown-item" href="{% url 'question_create' %}">Add Question</a></li>
-                        </ul>
-                    </li>
+                
+                    {% if user_role == "user" %}
+                        <!-- Normal User Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                Study
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'practice_select_topic' %}">
+                                    <i class="fas fa-book-open"></i> Practice Questions
+                                </a></li>
+                                <li><a class="dropdown-item" href="{% url 'select_topic' %}">
+                                    <i class="fas fa-clock"></i> Take Quiz
+                                </a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
+                
+                    {% if user_role == "admin" %}
+                        <!-- Admin Menu -->
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                Manage
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{% url 'topic_list' %}">Topics</a></li>
+                                <li><a class="dropdown-item" href="{% url 'question_list' %}">Questions</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'topic_create' %}">Add Topic</a></li>
+                                <li><a class="dropdown-item" href="{% url 'question_create' %}">Add Question</a></li>
+                            </ul>
+                        </li>
+                    {% endif %}
                 </ul>
+                
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
