@@ -1,55 +1,119 @@
 {% extends "base.html" %}
 
+{% block title %}Quiz - {{ topic.name }}{% endblock %}
+
 {% block content %}
-<div style="display:flex; justify-content:space-between; align-items:center;">
-  <h2>Quiz on {{ topic.name }}</h2>
-</div>
+<div class="container mt-5">
 
-<!-- Progress -->
-<p>Answered: {{ answered_count }} | Unanswered: {{ unanswered_count }} | Total: {{ total_questions }}</p>
-
-<form method="post" onsubmit="return confirmSubmit();">
-  {% csrf_token %}
-
-  <!-- Question -->
-  <div style="margin:20px 0;">
-    <p><strong>Q{{ current_index|add:"1" }}. {{ question.text }}</strong></p>
-
-    {% if question.question_type == "MCQ" %}
-      <label><input type="radio" name="answer" value="A" {% if saved_answer == "A" %}checked{% endif %}> {{ question.option_a }}</label><br>
-      <label><input type="radio" name="answer" value="B" {% if saved_answer == "B" %}checked{% endif %}> {{ question.option_b }}</label><br>
-      <label><input type="radio" name="answer" value="C" {% if saved_answer == "C" %}checked{% endif %}> {{ question.option_c }}</label><br>
-      <label><input type="radio" name="answer" value="D" {% if saved_answer == "D" %}checked{% endif %}> {{ question.option_d }}</label><br>
-    {% elif question.question_type == "TF" %}
-      <label><input type="radio" name="answer" value="True" {% if saved_answer == "True" %}checked{% endif %}> True</label><br>
-      <label><input type="radio" name="answer" value="False" {% if saved_answer == "False" %}checked{% endif %}> False</label><br>
-    {% else %}
-      <input type="text" name="answer" value="{{ saved_answer }}">
-    {% endif %}
-  </div>
-
-  <!-- Navigation & Submit Buttons -->
-  <div style="display:flex; justify-content:space-between; margin-top:20px;">
-    <div>
-      {% if current_index > 0 %}
-        <button type="submit" name="action" value="prev">Previous</button>
-      {% endif %}
-      {% if current_index < total_questions|add:"-1" %}
-        <button type="submit" name="action" value="next">Next</button>
-      {% endif %}
+    <!-- Quiz Header -->
+    <div class="row mb-4">
+        <div class="col-md-12 text-center">
+            <h2 class="mb-2">Quiz on {{ topic.name }}</h2>
+            <div class="badge bg-info text-dark py-2 px-3">
+                Question {{ current_index|add:"1" }} of {{ total_questions }}
+            </div>
+        </div>
     </div>
 
-    <!-- Add an ID to the submit button -->
-<button type="submit" id="submitBtn" name="action" value="submit"
-        style="background:red; color:white; padding:5px 10px; border:none; cursor:pointer;">
-  Submit Quiz
-</button>
+    <!-- Timer & Stats -->
+    <div class="row mb-4 justify-content-center">
+        <div class="col-md-4 text-center">
+            <div class="card shadow-sm p-3">
+                <h5>Time Remaining</h5>
+                <span id="time" class="display-6 text-primary"></span>
+            </div>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="card shadow-sm p-3">
+                <h5>Progress</h5>
+                <p>Answered: {{ answered_count }} | Unanswered: {{ unanswered_count }}</p>
+            </div>
+        </div>
+    </div>
 
+    <!-- Question Card -->
+    <form method="post" onsubmit="return confirmSubmit();">
+        {% csrf_token %}
+        <input type="hidden" name="remaining_seconds" id="remaining_seconds_input" value="{{ remaining_seconds }}">
+        
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <p class="fs-5"><strong>Q{{ current_index|add:"1" }}. {{ question.text }}</strong></p>
+
+                {% if question.question_type == "MCQ" %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="A" id="optionA" {% if saved_answer == "A" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionA">{{ question.option_a }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="B" id="optionB" {% if saved_answer == "B" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionB">{{ question.option_b }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="C" id="optionC" {% if saved_answer == "C" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionC">{{ question.option_c }}</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="D" id="optionD" {% if saved_answer == "D" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionD">{{ question.option_d }}</label>
+                    </div>
+                {% elif question.question_type == "TF" %}
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="True" id="optionTrue" {% if saved_answer == "True" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionTrue">True</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="answer" value="False" id="optionFalse" {% if saved_answer == "False" %}checked{% endif %}>
+                        <label class="form-check-label" for="optionFalse">False</label>
+                    </div>
+                {% else %}
+                    <input type="text" class="form-control" name="answer" value="{{ saved_answer }}">
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Navigation & Submit Buttons -->
+        <div class="d-flex justify-content-between mb-5">
+            <div>
+                {% if current_index > 0 %}
+                    <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">Previous</button>
+                {% endif %}
+                {% if current_index < total_questions|add:"-1" %}
+                    <button type="submit" name="action" value="next" class="btn btn-outline-primary">Next</button>
+                {% endif %}
+            </div>
+            <button type="submit" name="action" value="submit" class="btn btn-danger">Submit Quiz</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
 <script>
-document.getElementById("submitBtn").addEventListener("click", function(event) {
-  if (!confirm("Are you sure you want to submit the quiz?")) {
-    event.preventDefault(); // prevent form submission if user cancels
-  }
-});
+    function confirmSubmit() {
+        return confirm("Are you sure you want to submit the quiz?");
+    }
+
+    // Timer
+    let totalSeconds = {{ remaining_seconds }};
+    const timerElement = document.getElementById('time');
+    const remainingInput = document.getElementById('remaining_seconds_input');
+
+    function updateTimer() {
+        let minutes = Math.floor(totalSeconds / 60);
+        let seconds = totalSeconds % 60;
+        timerElement.textContent = minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+        remainingInput.value = totalSeconds;
+        totalSeconds--;
+
+        if (totalSeconds < 0) {
+            clearInterval(timerInterval);
+            alert("Time's up! Quiz will be submitted automatically.");
+            document.querySelector("form").submit();
+        }
+    }
+
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
 </script>
 {% endblock %}

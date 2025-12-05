@@ -1,49 +1,77 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="quiz-results">
-    <h2>Quiz Results: {{ results.topic_name }}</h2>
-    
-    <div class="score-summary" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <h3>Your Score: {{ results.score }}/{{ results.total }} ({{ results.percentage }}%)</h3>
-        
-        {% if results.percentage >= 80 %}
-            <p style="color: #28a745; font-weight: bold;">Excellent! 🎉</p>
-        {% elif results.percentage >= 60 %}
-            <p style="color: #ffc107; font-weight: bold;">Good Job! 👍</p>
-        {% else %}
-            <p style="color: #dc3545; font-weight: bold;">Keep Practicing! 📚</p>
-        {% endif %}
+<div class="container mt-5">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold">Quiz Results: {{ topic_name }}</h2>
+        <span class="badge bg-primary fs-6">Score: {{ score }}/{{ total }}</span>
     </div>
 
-    <h3>Detailed Results:</h3>
-    {% for result in results.results %}
-        <div class="question-result" style="margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;">
-            <p><strong>Q{{ forloop.counter }}. {{ result.question_text }}</strong></p>
-            
-            {% if result.question_type == "MCQ" or result.question_type == "TF" %}
-                <p>Your answer: <span style="color: {% if result.is_correct %}#28a745{% else %}#dc3545{% endif %};">
-                    {{ result.user_answer|default:"No answer" }}
-                </span></p>
-                {% if not result.is_correct %}
-                    <p>Correct answer: <span style="color: #28a745;">{{ result.correct_answer }}</span></p>
+    <!-- Summary Card -->
+    <div class="card mb-4 shadow-sm p-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5>Percentage</h5>
+                <p class="fs-4 fw-bold">{{ percentage }}%</p>
+            </div>
+            <div>
+                {% if percentage >= 75 %}
+                    <i class="fas fa-trophy fa-3x text-warning"></i>
+                {% elif percentage >= 50 %}
+                    <i class="fas fa-thumbs-up fa-3x text-success"></i>
+                {% else %}
+                    <i class="fas fa-exclamation-circle fa-3x text-danger"></i>
                 {% endif %}
-            {% else %}
-                <p>Your answer: {{ result.user_answer|default:"No answer" }}</p>
-                <p>Expected answer: {{ result.correct_answer }}</p>
-            {% endif %}
-            
-            {% if result.is_correct %}
-                <span style="color: #28a745;">✓ Correct</span>
-            {% else %}
-                <span style="color: #dc3545;">✗ Incorrect</span>
-            {% endif %}
+            </div>
         </div>
-    {% endfor %}
+    </div>
 
-    <div style="margin-top: 30px;">
-        <a href="{% url 'select_topic' %}" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; margin-right: 10px;">Take Another Quiz</a>
-        <a href="{% url 'take_quiz' results.topic_id %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 4px;">Retake This Quiz</a>
+    <!-- Question-wise Details -->
+    <h4 class="mb-3">Question-wise Details</h4>
+    <div class="row g-3">
+        {% for q in results %}
+        <div class="col-12">
+            <div class="card shadow-sm p-3 {% if q.is_correct %}border-success{% else %}border-danger{% endif %}">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <strong>Q{{ forloop.counter }}:</strong>
+                    {% if q.is_correct %}
+                        <span class="badge bg-success">Correct ✅</span>
+                    {% else %}
+                        <span class="badge bg-danger">Incorrect ❌</span>
+                    {% endif %}
+                </div>
+                <p class="mb-2"><strong>Question:</strong> {{ q.question_text }}</p>
+
+                {% if q.question_type in "MCQ TF" %}
+                    <p class="mb-1"><strong>Your Answer:</strong> {{ q.user_answer }}</p>
+                    <p class="mb-1"><strong>Correct Answer:</strong> {{ q.correct_answer }}</p>
+                {% else %}
+                    <p class="mb-1"><strong>Your Answer:</strong> {{ q.user_answer }}</p>
+                    <p class="mb-1"><strong>Correct Answer:</strong> {{ q.correct_answer }}</p>
+                {% endif %}
+
+                {% if q.options %}
+                    <ul class="list-group list-group-flush mt-2">
+                        <li class="list-group-item">A: {{ q.options.A }}</li>
+                        <li class="list-group-item">B: {{ q.options.B }}</li>
+                        <li class="list-group-item">C: {{ q.options.C }}</li>
+                        <li class="list-group-item">D: {{ q.options.D }}</li>
+                    </ul>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Actions -->
+    <div class="mt-4 d-flex gap-2">
+        {% if topic %}
+            <a href="{% url 'take_quiz' topic.id %}?start=1" class="btn btn-warning">
+                Retake Quiz
+            </a>
+        {% endif %}
+        <a href="{% url 'select_topic' %}" class="btn btn-primary">Select Another Topic</a>
     </div>
 </div>
 {% endblock %}

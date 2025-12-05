@@ -164,14 +164,34 @@ def take_quiz(request, topic_id):
     questions = list(Question.objects.filter(topic=topic)[:10])
     total_questions = len(questions)
 
-    # Current question index from query params
-    current_index = int(request.GET.get("q", 0))
-    current_index = max(0, min(current_index, total_questions - 1))
+    if total_questions == 0:
+        return render(request, "no_questions.html", {"topic": topic})
 
-    # Initialize session answers
+    # Clear old quiz session if starting new quiz
+    start_new = request.GET.get("start", None)
+    if start_new:
+        if "quiz_answers" in request.session:
+            del request.session["quiz_answers"]
+        if "quiz_results" in request.session:
+            del request.session["quiz_results"]
+        if "remaining_seconds" in request.session:
+            del request.session["remaining_seconds"]
+
+    # Quiz duration in minutes
+    duration_minutes = 10
+
+    # Get current question index
+    current_index = int(request.GET.get("q", 0))
+    if current_index < 0 or current_index >= total_questions:
+        current_index = 0
+
+    # Initialize session for answers
     if "quiz_answers" not in request.session:
         request.session["quiz_answers"] = {}
     answers = request.session["quiz_answers"]
+
+    # Timer: use remaining_seconds from session if exists
+    total_seconds = request.session.get("remaining_seconds", duration_minutes * 60)
 
     if request.method == "POST":
         action = request.POST.get("action")
@@ -179,9 +199,14 @@ def take_quiz(request, topic_id):
         question_id = str(current_question.id)
         user_answer = request.POST.get("answer", "").strip()
 
-        # Save the answer even if numeric "0"
+        # Save the answer
         answers[question_id] = user_answer
         request.session["quiz_answers"] = answers
+
+        # Update remaining time from hidden input
+        remaining_seconds = request.POST.get("remaining_seconds")
+        if remaining_seconds:
+            request.session["remaining_seconds"] = int(remaining_seconds)
 
         # Navigation
         if action == "next" and current_index < total_questions - 1:
@@ -189,7 +214,7 @@ def take_quiz(request, topic_id):
         elif action == "prev" and current_index > 0:
             return redirect(f"{reverse('take_quiz', args=[topic.id])}?q={current_index - 1}")
         elif action == "submit":
-            # Prepare results
+            # Calculate results
             score = 0
             results = []
             for q in questions:
@@ -199,7 +224,7 @@ def take_quiz(request, topic_id):
 
                 if q.question_type in ["MCQ", "TF"]:
                     is_correct = user_ans.upper() == correct.upper() if user_ans else False
-                else:  # Numeric
+                else:
                     is_correct = user_ans == correct
 
                 if is_correct:
@@ -221,7 +246,6 @@ def take_quiz(request, topic_id):
 
             percentage = (score / total_questions * 100) if total_questions else 0
 
-            # Store only JSON-serializable data in session
             request.session["quiz_results"] = {
                 "topic_id": topic.id,
                 "topic_name": topic.name,
@@ -231,11 +255,15 @@ def take_quiz(request, topic_id):
                 "results": results
             }
 
-            # Clear quiz answers
-            del request.session["quiz_answers"]
+            # Clear answers and timer
+            if "quiz_answers" in request.session:
+                del request.session["quiz_answers"]
+            if "remaining_seconds" in request.session:
+                del request.session["remaining_seconds"]
 
             return redirect('quiz_results')
 
+    # Show current question
     current_question = questions[current_index]
     question_id = str(current_question.id)
     saved_answer = answers.get(question_id, "")
@@ -247,9 +275,18 @@ def take_quiz(request, topic_id):
         "total_questions": total_questions,
         "saved_answer": saved_answer,
         "answered_count": len(answers),
-        "unanswered_count": total_questions - len(answers)
+        "unanswered_count": total_questions - len(answers),
+        "duration_minutes": duration_minutes,
+        "remaining_seconds": total_seconds
     })
 
+
+
+
+from django.shortcuts import render, redirect
+from django.contrib import messages
+
+from .models import Topic
 
 def quiz_results(request):
     results_data = request.session.get("quiz_results")
@@ -257,8 +294,19 @@ def quiz_results(request):
         messages.error(request, "No quiz results found.")
         return redirect('select_topic')
 
-    # Do NOT delete session yet if template needs topic_id
-    return render(request, "quiz_results.html", {"results": results_data})
+    # Fetch topic object
+    try:
+        topic = Topic.objects.get(name=results_data.get("topic_name"))
+    except Topic.DoesNotExist:
+        topic = None
+
+    return render(request, "quiz_results.html", {
+        "topic": topic,  # Add the topic object
+        "score": results_data.get("score"),
+        "total": results_data.get("total"),
+        "percentage": results_data.get("percentage"),
+        "results": results_data.get("results"),
+    })
 
 
 # Optional: Add this view to retake quiz

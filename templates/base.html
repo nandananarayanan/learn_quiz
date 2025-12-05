@@ -4,73 +4,133 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Quiz Application{% endblock %}</title>
+
     <!-- Bootstrap CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
-    <!-- MathJax for LaTeX rendering -->
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- MathJax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-mml-chtml.min.js"></script>
     <script>
         MathJax = {
-            tex: {
-                inlineMath: [['$', '$'], ['\\(', '\\)']],
-                displayMath: [['$$', '$$'], ['\\[', '\\]']]
-            },
-            svg: {
-                fontCache: 'global'
-            }
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            svg: { fontCache: 'global' }
         };
     </script>
+
     <style>
+        body {
+            background-color: #f0f2f5;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        /* Navbar */
+        .navbar {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
         .navbar-brand {
             font-weight: bold;
+            color: #fff !important;
         }
-        .card {
-            border-radius: 10px;
+        .nav-link {
+            color: #fff !important;
+        }
+        .nav-link:hover, .dropdown-item:hover {
+            color: #f0f0f0 !important;
+            background-color: rgba(255,255,255,0.1);
+        }
+
+        /* Cards & Buttons */
+        .card, .topic-card {
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            background-color: #fff;
+        }
+        .card:hover, .topic-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
         }
         .btn {
-            border-radius: 5px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
         }
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        /* Topic card icon */
+        .icon-wrapper {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0 auto;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        .icon-wrapper i {
+            color: #fff;
+            font-size: 24px;
+        }
+
+        /* Messages */
+        .alert {
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        /* Footer */
         footer {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: #fff;
+            padding: 20px 0;
+            text-align: center;
             margin-top: 50px;
+            border-top-left-radius: 16px;
+            border-top-right-radius: 16px;
         }
-        .solution-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #28a745;
-            padding: 15px;
-            margin-top: 15px;
+
+        /* Quiz question & result styling */
+        .question-box, .solution-box, .answer-highlight {
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
         .question-box {
             background-color: #fff;
             border: 1px solid #dee2e6;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
+        }
+        .solution-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #28a745;
         }
         .answer-highlight {
             background-color: #d4edda;
-            padding: 10px;
-            border-radius: 5px;
             border-left: 4px solid #28a745;
         }
     </style>
 </head>
-<body class="bg-light">
+<body>
+
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark">
         <div class="container">
             <a class="navbar-brand" href="{% url 'home' %}">Quiz App</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
+
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link" href="{% url 'home' %}">Home</a>
                     </li>
-                
+
                     {% if user_role == "user" %}
-                        <!-- Normal User Menu -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 Study
                             </a>
                             <ul class="dropdown-menu">
@@ -83,13 +143,10 @@
                             </ul>
                         </li>
                     {% endif %}
-                
+
                     {% if user_role == "admin" %}
-                        <!-- Admin Menu -->
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                Manage
-                            </a>
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Manage</a>
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{% url 'topic_list' %}">Topics</a></li>
                                 <li><a class="dropdown-item" href="{% url 'question_list' %}">Questions</a></li>
@@ -100,11 +157,11 @@
                         </li>
                     {% endif %}
                 </ul>
-                
+
                 <ul class="navbar-nav">
                     {% if user.is_authenticated %}
                         <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                                 {{ user.username }}
                             </a>
                             <ul class="dropdown-menu">
@@ -114,12 +171,8 @@
                             </ul>
                         </li>
                     {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Login</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'signup' %}">Register</a>
-                        </li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'signup' %}">Register</a></li>
                     {% endif %}
                 </ul>
             </div>
@@ -139,13 +192,13 @@
     {% endif %}
 
     <!-- Main Content -->
-    <main>
+    <main class="container my-5">
         {% block content %}
         {% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white text-center py-3 mt-5">
+    <footer>
         <div class="container">
             <p>&copy; 2025 Quiz Application. All rights reserved.</p>
         </div>
@@ -153,7 +206,6 @@
 
     <!-- Bootstrap JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-    
     {% block extra_js %}
     {% endblock %}
 </body>
