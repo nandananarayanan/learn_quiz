@@ -177,3 +177,17 @@ class TopicNote(models.Model):
     
     def __str__(self):
         return f"Note for {self.topic.name}"
+from django.conf import settings
+
+class Leaderboard(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    topic = models.ForeignKey(Topic, on_delete=models.CASCADE)
+    score = models.FloatField(default=0)
+    percentage = models.FloatField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-score', 'created_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.topic.name}: {self.score}"

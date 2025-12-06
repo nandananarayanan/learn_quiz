@@ -7,6 +7,8 @@ from django.db.models import Count
 from .models import Question, Topic,TopicNote
 from .forms import QuestionForm, TopicForm
 from django.contrib.auth.decorators import login_required
+from .models import Leaderboard
+
 
 @login_required(login_url='login')
 def home(request):
@@ -27,10 +29,15 @@ def home(request):
         }
         topics_with_notes.append(topic_data)
     
+    # Select default topic for leaderboard button (first topic)
+    default_topic_id = topics_with_notes[0]['topic'].id if topics_with_notes else None
+    
     context = {
         'topics_with_notes': topics_with_notes,
+        'default_topic_id': default_topic_id,  # pass default topic_id
     }
     return render(request, 'home.html', context)
+
 
 # Topic Views
 # @login_required  # Commented out temporarily
@@ -214,7 +221,7 @@ def take_quiz(request, topic_id):
         elif action == "prev" and current_index > 0:
             return redirect(f"{reverse('take_quiz', args=[topic.id])}?q={current_index - 1}")
         elif action == "submit":
-            # Calculate results
+    # Calculate results
             score = 0
             results = []
             for q in questions:
@@ -246,6 +253,40 @@ def take_quiz(request, topic_id):
 
             percentage = (score / total_questions * 100) if total_questions else 0
 
+            # -----------------------------
+            # STEP 1: SAVE ATTEMPT & ANSWERS
+            # -----------------------------
+            from .models import Attempt, Answer
+
+            # Create Attempt record
+            attempt = Attempt.objects.create(
+                user=request.user,
+                test=None,      # Because this is a topic-wise quiz (not Test model)
+                score=score
+            )
+
+            # Save answers
+            for q in questions:
+                q_id = str(q.id)
+                user_ans = answers.get(q_id, "").strip()
+                correct = (q.correct_option or "").strip()
+
+                if q.question_type in ["MCQ", "TF"]:
+                    is_correct = user_ans.upper() == correct.upper() if user_ans else False
+                else:
+                    is_correct = user_ans == correct
+
+                Answer.objects.create(
+                    attempt=attempt,
+                    question=q,
+                    typed_answer=user_ans,
+                    is_correct=is_correct,
+                    marks_awarded=1 if is_correct else 0
+                )
+
+            # -----------------------------
+            # STORE RESULT IN SESSION (temporary display)
+            # -----------------------------
             request.session["quiz_results"] = {
                 "topic_id": topic.id,
                 "topic_name": topic.name,
@@ -262,6 +303,7 @@ def take_quiz(request, topic_id):
                 del request.session["remaining_seconds"]
 
             return redirect('quiz_results')
+
 
     # Show current question
     current_question = questions[current_index]
@@ -288,24 +330,49 @@ from django.contrib import messages
 
 from .models import Topic
 
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .models import Attempt, Answer, Topic, Question
+
 def quiz_results(request):
-    results_data = request.session.get("quiz_results")
-    if not results_data:
+    # 1. Get the latest attempt by this user
+    attempt = Attempt.objects.filter(user=request.user).order_by('-id').first()
+
+    if not attempt:
         messages.error(request, "No quiz results found.")
         return redirect('select_topic')
 
-    # Fetch topic object
-    try:
-        topic = Topic.objects.get(name=results_data.get("topic_name"))
-    except Topic.DoesNotExist:
-        topic = None
+    # 2. Build results data
+    answers = Answer.objects.filter(attempt=attempt).select_related('question')
+    results_list = []
+
+    for ans in answers:
+        q = ans.question
+        results_list.append({
+            "question_text": q.text,
+            "user_answer": ans.typed_answer if ans.typed_answer else "No answer",
+            "correct_answer": q.correct_option,
+            "is_correct": ans.is_correct,
+            "question_type": q.question_type,
+            "options": {
+                "A": q.option_a,
+                "B": q.option_b,
+                "C": q.option_c,
+                "D": q.option_d
+            } if q.question_type == "MCQ" else None
+        })
+
+    percentage = (attempt.score / len(results_list)) * 100 if len(results_list) else 0
+
+    # 3. Topic (take from the first question)
+    topic = answers.first().question.topic if answers.exists() else None
 
     return render(request, "quiz_results.html", {
-        "topic": topic,  # Add the topic object
-        "score": results_data.get("score"),
-        "total": results_data.get("total"),
-        "percentage": results_data.get("percentage"),
-        "results": results_data.get("results"),
+        "topic": topic,
+        "score": attempt.score,
+        "total": len(results_list),
+        "percentage": round(percentage, 1),
+        "results": results_list,
     })
 
 
@@ -471,8 +538,10 @@ def redirect_after_login(request):
 
 
 from django.shortcuts import render, redirect
-from django.contrib.auth.models import User
 from django.contrib import messages
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 def simple_password_reset(request):
     if request.method == 'POST':
@@ -505,3 +574,27 @@ def simple_password_reset(request):
             return render(request, 'auth/password_reset.html')
     
     return render(request, 'auth/password_reset.html')
+
+
+from django.shortcuts import render
+from .models import Attempt
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+def leaderboard(request):
+    # Only consider attempts that are finished
+    attempts = Attempt.objects.filter(finished_at__isnull=False).order_by('-score')
+
+    results = []
+    for attempt in attempts:
+        results.append({
+            'user': attempt.user,
+            'score': attempt.score,
+            'test_name': attempt.test.name if attempt.test else "Practice",
+            'completed_at': attempt.finished_at
+        })
+
+    context = {'results': results}
+    return render(request, 'leaderboard.html', context)
+

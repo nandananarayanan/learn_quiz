@@ -3,6 +3,68 @@
 {% block title %}Quiz - {{ topic.name }}{% endblock %}
 
 {% block content %}
+
+<style>
+/* Dimmed background */
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.6);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+    z-index: 2000;
+}
+
+/* Popup Box */
+.popup-box {
+    background: white;
+    width: 450px;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    position: relative;
+    animation: popupSlide 0.3s ease;
+    text-align: center;
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    border: none;
+    background: transparent;
+    font-size: 26px;
+    color: #666;
+    cursor: pointer;
+}
+
+/* Buttons */
+.popup-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes popupSlide {
+    from { transform: translateY(-20px); opacity: 0; }
+    to   { transform: translateY(0); opacity: 1; }
+}
+</style>
+
+
 <div class="container mt-5">
 
     <!-- Quiz Header -->
@@ -32,40 +94,52 @@
     </div>
 
     <!-- Question Card -->
-    <form method="post" onsubmit="return confirmSubmit();">
+    <form method="post" id="quiz-form">
         {% csrf_token %}
         <input type="hidden" name="remaining_seconds" id="remaining_seconds_input" value="{{ remaining_seconds }}">
-        
+
         <div class="card shadow mb-4">
             <div class="card-body">
                 <p class="fs-5"><strong>Q{{ current_index|add:"1" }}. {{ question.text }}</strong></p>
 
                 {% if question.question_type == "MCQ" %}
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="A" id="optionA" {% if saved_answer == "A" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="A" id="optionA"
+                            {% if saved_answer == "A" %}checked{% endif %}>
                         <label class="form-check-label" for="optionA">{{ question.option_a }}</label>
                     </div>
+
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="B" id="optionB" {% if saved_answer == "B" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="B" id="optionB"
+                            {% if saved_answer == "B" %}checked{% endif %}>
                         <label class="form-check-label" for="optionB">{{ question.option_b }}</label>
                     </div>
+
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="C" id="optionC" {% if saved_answer == "C" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="C" id="optionC"
+                            {% if saved_answer == "C" %}checked{% endif %}>
                         <label class="form-check-label" for="optionC">{{ question.option_c }}</label>
                     </div>
+
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="D" id="optionD" {% if saved_answer == "D" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="D" id="optionD"
+                            {% if saved_answer == "D" %}checked{% endif %}>
                         <label class="form-check-label" for="optionD">{{ question.option_d }}</label>
                     </div>
+
                 {% elif question.question_type == "TF" %}
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="True" id="optionTrue" {% if saved_answer == "True" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="True" id="optionTrue"
+                            {% if saved_answer == "True" %}checked{% endif %}>
                         <label class="form-check-label" for="optionTrue">True</label>
                     </div>
+
                     <div class="form-check">
-                        <input class="form-check-input" type="radio" name="answer" value="False" id="optionFalse" {% if saved_answer == "False" %}checked{% endif %}>
+                        <input class="form-check-input" type="radio" name="answer" value="False" id="optionFalse"
+                            {% if saved_answer == "False" %}checked{% endif %}>
                         <label class="form-check-label" for="optionFalse">False</label>
                     </div>
+
                 {% else %}
                     <input type="text" class="form-control" name="answer" value="{{ saved_answer }}">
                 {% endif %}
@@ -78,42 +152,85 @@
                 {% if current_index > 0 %}
                     <button type="submit" name="action" value="prev" class="btn btn-outline-secondary">Previous</button>
                 {% endif %}
+
                 {% if current_index < total_questions|add:"-1" %}
                     <button type="submit" name="action" value="next" class="btn btn-outline-primary">Next</button>
                 {% endif %}
             </div>
-            <button type="submit" name="action" value="submit" class="btn btn-danger">Submit Quiz</button>
+
+            <!-- OPEN CUSTOM POPUP -->
+            <button type="button" class="btn btn-danger" onclick="openPopup()">Submit Quiz</button>
         </div>
     </form>
 </div>
+
+<!-- Custom Popup -->
+<div id="popupOverlay" class="popup-overlay">
+    <div class="popup-box">
+        <button class="close-btn" onclick="closePopup()">×</button>
+
+        <h4 class="popup-title">Confirm Submission</h4>
+        <p class="popup-text">Are you sure you want to submit the quiz?</p>
+
+        <div class="popup-buttons">
+            <button class="btn btn-secondary" onclick="closePopup()">Cancel</button>
+            <button class="btn btn-danger" onclick="submitQuiz()">Yes, Submit</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
+
 
 {% block extra_js %}
 <script>
-    function confirmSubmit() {
-        return confirm("Are you sure you want to submit the quiz?");
+
+function openPopup() {
+    document.getElementById("popupOverlay").style.display = "flex";
+}
+
+function closePopup() {
+    document.getElementById("popupOverlay").style.display = "none";
+}
+
+function submitQuiz() {
+    const form = document.getElementById("quiz-form");
+
+    // Add hidden input for action="submit"
+    const actionInput = document.createElement("input");
+    actionInput.type = "hidden";
+    actionInput.name = "action";
+    actionInput.value = "submit";
+    form.appendChild(actionInput);
+
+    form.submit();
+}
+
+
+/* TIMER */
+let totalSeconds = {{ remaining_seconds }};
+const timerElement = document.getElementById('time');
+const remainingInput = document.getElementById('remaining_seconds_input');
+
+function updateTimer() {
+    let minutes = Math.floor(totalSeconds / 60);
+    let seconds = totalSeconds % 60;
+
+    timerElement.textContent =
+        minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
+
+    remainingInput.value = totalSeconds;
+    totalSeconds--;
+
+    if (totalSeconds < 0) {
+        clearInterval(timerInterval);
+        alert("Time's up! Quiz will be submitted automatically.");
+        document.getElementById("quiz-form").submit();
     }
+}
 
-    // Timer
-    let totalSeconds = {{ remaining_seconds }};
-    const timerElement = document.getElementById('time');
-    const remainingInput = document.getElementById('remaining_seconds_input');
+updateTimer();
+const timerInterval = setInterval(updateTimer, 1000);
 
-    function updateTimer() {
-        let minutes = Math.floor(totalSeconds / 60);
-        let seconds = totalSeconds % 60;
-        timerElement.textContent = minutes + ":" + (seconds < 10 ? "0" + seconds : seconds);
-        remainingInput.value = totalSeconds;
-        totalSeconds--;
-
-        if (totalSeconds < 0) {
-            clearInterval(timerInterval);
-            alert("Time's up! Quiz will be submitted automatically.");
-            document.querySelector("form").submit();
-        }
-    }
-
-    updateTimer();
-    const timerInterval = setInterval(updateTimer, 1000);
 </script>
 {% endblock %}

@@ -36,4 +36,7 @@ urlpatterns = [
     path("redirect-after-login/", views.redirect_after_login, name="redirect_after_login"),
 
     path('password-reset/', views.simple_password_reset, name='password_reset'),
+
+    path('leaderboard/', views.leaderboard, name='leaderboard'),
+
 ]
