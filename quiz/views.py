@@ -468,3 +468,40 @@ def redirect_after_login(request):
         return redirect("home")  # Django’s default admin dashboard
     else:
         return redirect("home")     # your quiz home page
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.models import User
+from django.contrib import messages
+
+def simple_password_reset(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        new_password1 = request.POST.get('new_password1')
+        new_password2 = request.POST.get('new_password2')
+        
+        # Validation
+        if not username or not new_password1 or not new_password2:
+            messages.error(request, 'All fields are required.')
+            return render(request, 'auth/password_reset.html')
+        
+        if new_password1 != new_password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'auth/password_reset.html')
+        
+        if len(new_password1) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return render(request, 'auth/password_reset.html')
+        
+        # Check if user exists
+        try:
+            user = User.objects.get(username=username)
+            user.set_password(new_password1)
+            user.save()
+            messages.success(request, 'Password changed successfully! You can now login.')
+            return redirect('login')
+        except User.DoesNotExist:
+            messages.error(request, 'Username not found.')
+            return render(request, 'auth/password_reset.html')
+    
+    return render(request, 'auth/password_reset.html')
