@@ -160,11 +160,7 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.urls import reverse
 from .models import Topic, Question
 from django.contrib import messages
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
-from django.contrib import messages
-from .models import Topic, Question
+from django.utils import timezone
 
 def take_quiz(request, topic_id):
     topic = get_object_or_404(Topic, pk=topic_id)
@@ -264,6 +260,8 @@ def take_quiz(request, topic_id):
                 test=None,      # Because this is a topic-wise quiz (not Test model)
                 score=score
             )
+            attempt.finished_at = timezone.now()
+            attempt.save()
 
             # Save answers
             for q in questions:
@@ -579,22 +577,40 @@ def simple_password_reset(request):
 from django.shortcuts import render
 from .models import Attempt
 from django.contrib.auth import get_user_model
+from django.db.models import Max
+
 
 User = get_user_model()
-
 def leaderboard(request):
-    # Only consider attempts that are finished
-    attempts = Attempt.objects.filter(finished_at__isnull=False).order_by('-score')
+    # Get all finished attempts, sorted by score descending, then finished_at ascending
+    attempts = Attempt.objects.filter(finished_at__isnull=False).order_by('-score', 'finished_at')
 
     results = []
+    seen_users = set()
     for attempt in attempts:
-        results.append({
-            'user': attempt.user,
-            'score': attempt.score,
-            'test_name': attempt.test.name if attempt.test else "Practice",
-            'completed_at': attempt.finished_at
-        })
+        if attempt.user.id not in seen_users:
+            results.append({
+                'user': attempt.user,
+                'score': attempt.score,
+                'completed_at': attempt.finished_at,
+            })
+            seen_users.add(attempt.user.id)
 
-    context = {'results': results}
-    return render(request, 'leaderboard.html', context)
+    # Calculate ranks and handle ties
+    ranked_results = []
+    previous_score = None
+    rank = 0
+    same_rank_count = 0
 
+    for idx, result in enumerate(results):
+        if result['score'] == previous_score:
+            # Same score → same rank
+            same_rank_count += 1
+        else:
+            rank += 1 + same_rank_count
+            same_rank_count = 0
+        result['rank'] = rank
+        previous_score = result['score']
+        ranked_results.append(result)
+
+    return render(request, "leaderboard.html", {"results": ranked_results})

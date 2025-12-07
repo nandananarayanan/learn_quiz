@@ -131,13 +131,13 @@ class Test(models.Model):
 # ---------------------------
 class Attempt(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    test = models.ForeignKey(Test, on_delete=models.CASCADE, null=True, blank=True)
+    test = models.ForeignKey(Test, on_delete=models.SET_NULL, null=True, blank=True)
+    score = models.FloatField(default=0.0)
     started_at = models.DateTimeField(auto_now_add=True)
     finished_at = models.DateTimeField(null=True, blank=True)
-    score = models.FloatField(default=0.0)
 
     def __str__(self):
-        return f"Attempt by {self.user} on {self.test}"
+        return f"{self.user.username} - {self.test.name if self.test else 'Practice'} - {self.score}"
 
 
 # ---------------------------
